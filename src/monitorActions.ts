@@ -1,17 +1,17 @@
 import * as mobx from 'mobx';
-import { stringify, parse } from 'jsan';
-import { getMethods, evalMethod } from 'remotedev-utils';
+const { stringify, parse } = require('jsan');
+const { getMethods, evalMethod } = require('remotedev-utils');
 import { silently, setValue } from './utils';
 
-export const isMonitorAction = (store) => store.__isRemotedevAction === true;
+export const isMonitorAction = (store: any) => store.__isRemotedevAction === true;
 
-function dispatch(store, { type, arguments: args }) {
+function dispatch(store: any, { type, arguments: args }: any) {
   if (typeof store[type] === 'function') {
     silently(() => { store[type](...args); }, store);
   }
 }
 
-function dispatchRemotely(devTools, store, payload) {
+function dispatchRemotely(devTools: any, store: any, payload: any) {
   try {
     evalMethod(payload, store);
   } catch (e) {
@@ -19,7 +19,7 @@ function dispatchRemotely(devTools, store, payload) {
   }
 }
 
-function toggleAction(store, id, strState) {
+function toggleAction(store: any, id: any, strState: any) {
   const liftedState = parse(strState);
   const idx = liftedState.skippedActionIds.indexOf(id);
   const skipped = idx !== -1;
@@ -43,25 +43,25 @@ function toggleAction(store, id, strState) {
   return liftedState;
 }
 
-export function dispatchMonitorAction(store, devTools, onlyActions) {
-  const initValue = mobx.toJS(store);
+export function dispatchMonitorAction(store: any, devTools: any, onlyActions: boolean) {
+  const initValue = mobx.toJS(store.store);
   devTools.init(initValue, getMethods(store));
 
-  return (message) => {
+  return (message: any) => {
     if (message.type === 'DISPATCH') {
       switch (message.payload.type) {
         case 'RESET':
-          devTools.init(setValue(store, initValue));
+          devTools.init(setValue(store.store, initValue));
           return;
         case 'COMMIT':
-          devTools.init(mobx.toJS(store));
+          devTools.init(mobx.toJS(store.store));
           return;
         case 'ROLLBACK':
-          devTools.init(setValue(store, parse(message.state)));
+          devTools.init(setValue(store.store, parse(message.state)));
           return;
         case 'JUMP_TO_STATE':
         case 'JUMP_TO_ACTION':
-          setValue(store, parse(message.state));
+          setValue(store.store, parse(message.state));
           return;
         case 'TOGGLE_ACTION':
           if (!onlyActions) {
@@ -71,18 +71,18 @@ export function dispatchMonitorAction(store, devTools, onlyActions) {
             );
             return;
           }
-          devTools.send(null, toggleAction(store, message.payload.id, message.state));
+          devTools.send(null, toggleAction(store.store, message.payload.id, message.state));
           return;
         case 'IMPORT_STATE': {
           const { nextLiftedState } = message.payload;
           const { computedStates } = nextLiftedState;
-          setValue(store, computedStates[computedStates.length - 1].state);
+          setValue(store.store, computedStates[computedStates.length - 1].state);
           devTools.send(null, nextLiftedState);
           return;
         }
       }
     } else if (message.type === 'ACTION') {
-      dispatchRemotely(devTools, store, message.payload);
+      dispatchRemotely(devTools, store.store, message.payload);
     }
   };
 }

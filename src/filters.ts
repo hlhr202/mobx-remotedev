@@ -1,4 +1,6 @@
-export function isFiltered(action, filter) {
+import { IFilter } from "./dev";
+
+export function isFiltered(action: any, filter: IFilter) {
   if (!filter) return false;
 
   const { whitelist, blacklist } = filter;

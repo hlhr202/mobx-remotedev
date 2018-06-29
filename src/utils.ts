@@ -1,6 +1,16 @@
 import * as mobx from 'mobx';
 
-const getPayload = (change) => {
+interface IChange {
+  added?: any
+  addedCount?: any
+  index?: any
+  removed?: any
+  removedCount?: any
+  newValue?: any
+  name: string
+}
+
+const getPayload = (change: IChange) => {
   const { added, addedCount, index, removed, removedCount } = change;
   return {
     index,
@@ -11,12 +21,12 @@ const getPayload = (change) => {
   };
 };
 
-export function createAction(name, change) {
+export function createAction(name: string, change?: IChange) {
   if (!change) { // is action
     return { type: name };
   }
 
-  let action;
+  let action!: any;
   if (typeof change.newValue !== 'undefined') {
     const key = typeof change.index !== 'undefined' ? change.index : change.name;
     action = { [key]: mobx.toJS(change.newValue) };
@@ -28,22 +38,22 @@ export function createAction(name, change) {
   return action;
 }
 
-export function getName(obj) {
+export function getName(obj: any) {
   if (!obj || !mobx.isObservable(obj)) return '';
-  let r = mobx.extras.getDebugName(obj);
-  let end = r.indexOf('.');
+  let r = mobx.getDebugName(obj);
+  let end: any = r.indexOf('.');
   if (end === -1) end = undefined;
   return r.substr(0, end);
 }
 
 /* eslint-disable no-param-reassign */
-export const silently = (fn, store) => {
+export const silently = (fn: any, store: any) => {
   store.__isRemotedevAction = true;
   fn();
   delete store.__isRemotedevAction;
 };
 
-function setValueAction(store, state) {
+function setValueAction(store: any, state: any) {
   silently(() => {
     if (store.importState) {
       store.importState(state);
@@ -55,6 +65,6 @@ function setValueAction(store, state) {
   }, store);
   return state;
 }
-setValueAction.__isRemotedevAction = true;
+(setValueAction as any).__isRemotedevAction = true;
 export const setValue = mobx.action('@@remotedev', setValueAction);
 /* eslint-enable */

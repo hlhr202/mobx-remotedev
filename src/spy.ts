@@ -1,20 +1,21 @@
 import * as mobx from 'mobx';
-import { connectViaExtension } from 'remotedev';
-import { createAction, getName } from './utils';
+import { Config, IDevStore, IFilter } from './dev';
 import { isFiltered } from './filters';
+const { connectViaExtension } = require('remotedev');
+import { createAction, getName } from './utils';
 import { dispatchMonitorAction } from './monitorActions';
 
 let isSpyEnabled = false;
-let fallbackStoreName;
-const stores = {};
-const onlyActions = {};
-const filters = {};
-const monitors = {};
-const scheduled = [];
+let fallbackStoreName: any;
+const stores: any = {};
+const onlyActions: any = {};
+const filters: { [x: string]: IFilter } = {};
+const monitors: any = {};
+const scheduled: any[] = [];
 
-function configure(name, config = {}) {
+function configure(name: string, config: Config = {}) {
   if (typeof config.onlyActions === 'undefined') {
-    onlyActions[name] = mobx.isStrictModeEnabled && mobx.isStrictModeEnabled();
+    onlyActions[name] = mobx._getGlobalState && mobx._getGlobalState().enforceActions;
   } else {
     onlyActions[name] = config.onlyActions;
   }
@@ -25,17 +26,17 @@ function configure(name, config = {}) {
   }
 }
 
-function init(store, config) {
-  const name = mobx.extras.getDebugName(store);
+function init(store: IDevStore, config: Config) {
+  const name = mobx.getDebugName(store);
   configure(name, config);
-  stores[name] = store;
+  stores[name] = store.store;
 
   const devTools = connectViaExtension(config);
   devTools.subscribe(dispatchMonitorAction(store, devTools, onlyActions[name]));
   monitors[name] = devTools;
 }
 
-function schedule(name, action) {
+function schedule(name: string, action?: any) {
   let toSend;
   if (action && !isFiltered(action, filters[name])) {
     toSend = () => { monitors[name].send(action, mobx.toJS(stores[name])); };
@@ -50,7 +51,7 @@ function send() {
   }
 }
 
-export default function spy(store, config) {
+export default function spy(store: IDevStore, config: Config) {
   init(store, config);
   if (isSpyEnabled) return;
   isSpyEnabled = true;
