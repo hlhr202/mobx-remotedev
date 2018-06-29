@@ -3,6 +3,7 @@
   "version": "0.2.8",
   "description": "Remote debugging for mobx.",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "files": [
     "src",
     "lib"
