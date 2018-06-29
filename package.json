@@ -1,6 +1,6 @@
 {
-  "name": "mobx-remotedev",
-  "version": "0.2.8",
+  "name": "@hlhr202/mobx-remotedev",
+  "version": "0.2.9",
   "description": "Remote debugging for mobx.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -10,12 +10,11 @@
   ],
   "scripts": {
     "clean": "rimraf lib",
-    "build:lib": "tsc",
-    "prepublish": "npm run build"
+    "build:lib": "tsc"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/zalmoxisus/mobx-remotedev.git"
+    "url": "https://github.com/hlhr202/mobx-remotedev.git"
   },
   "keywords": [
     "mobx",
@@ -26,12 +25,16 @@
     "time travel",
     "live edit"
   ],
-  "author": "Mihail Diordiev <zalmoxisus@gmail.com> (https://github.com/zalmoxisus)",
+  "author": {
+		"name": "hlhr202",
+		"url": "https://github.com/hlhr202",
+		"email": "hlhr202@163.com"
+	},
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/zalmoxisus/mobx-remotedev/issues"
+    "url": "https://github.com/hlhr202/mobx-remotedev/issues"
   },
-  "homepage": "https://github.com/zalmoxisus/mobx-remotedev",
+  "homepage": "https://github.com/hlhr202/mobx-remotedev",
   "devDependencies": {
     "@types/node": "^10.5.1",
     "expect": "^1.20.1",
@@ -43,15 +46,6 @@
   "peerDependencies": {
     "mobx": ">=2.3.0"
   },
-  "npmName": "mobx-remotedev",
-  "npmFileMap": [
-    {
-      "basePath": "/dist/",
-      "files": [
-        "*.js"
-      ]
-    }
-  ],
   "dependencies": {
     "jsan": "^3.1.9",
     "remotedev": "^0.2.7",
