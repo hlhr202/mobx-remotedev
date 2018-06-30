@@ -1,6 +1,6 @@
 {
   "name": "@hlhr202/mobx-remotedev",
-  "version": "0.2.9",
+  "version": "0.3.0",
   "description": "Remote debugging for mobx.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

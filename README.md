@@ -1,18 +1,22 @@
-Remote debugging for MobX with [Redux DevTools extension](https://github.com/zalmoxisus/redux-devtools-extension) (and [remotedev](https://github.com/zalmoxisus/remotedev) coming soon) 
+# Mobx Remote Dev
 
-![Demo](demo.gif) 
+[![npm](https://img.shields.io/npm/v/@hlhr202/mobx-remotedev.svg)](https://www.npmjs.com/package/@hlhr202/mobx-remotedev)
+This is a modified version of mobx-remotedev, the original repository can be found in [zalmoxisus/mobx-remotedev](https://github.com/zalmoxisus/mobx-remotedev)
+
+This version is typescript friendly
+
+Remote debugging for MobX with [Redux DevTools extension](https://github.com/zalmoxisus/redux-devtools-extension) (and [remotedev](https://github.com/zalmoxisus/remotedev) coming soon)
+
+![Demo](https://raw.githubusercontent.com/hlhr202/mobx-remotedev/ts/demo.gif) 
 
 ## Installation
 
 #### 1. Get the extension
 ##### 1.1 For Chrome
  - from [Chrome Web Store](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd)
- - or build it with `npm i & npm run build:extension` and [load the extension's folder](https://developer.chrome.com/extensions/getstarted#unpacked) `./build/extension`
- - or run it in dev mode with `npm i & npm start` and [load the extension's folder](https://developer.chrome.com/extensions/getstarted#unpacked) `./dev`.
 
 ##### 1.2 For Firefox
  - from [AMO](https://addons.mozilla.org/en-US/firefox/addon/remotedev/)
- - or build it with `npm i & npm run build:firefox` and [load the extension's folder](https://developer.mozilla.org/en-US/Add-ons/WebExtensions/Temporary_Installation_in_Firefox) `./build/firefox`.
 
 ##### 1.3 For Electron
   - just specify `REDUX_DEVTOOLS` in [`electron-devtools-installer`](https://github.com/GPMDP/electron-devtools-installer).
@@ -23,40 +27,91 @@ Remote debugging for MobX with [Redux DevTools extension](https://github.com/zal
 #### 2. Install the library
 
 ```
-npm install --save mobx-remotedev
+npm install --save @hlhr202/mobx-remotedev
 ```
 
 ## Usage
 
-```js
-import remotedev from 'mobx-remotedev';
-// or import remotedev from 'mobx-remotedev/lib/dev'
-// in case you want to use it in production or don't have process.env.NODE_ENV === 'development'
+- To keep stores in order, a single root store is recommended
+- I suggest to use ES decorator or enable typescript experimental decorator
 
-const appStore = observable({
-  // ...
-});
+```jsx
 
-// Or
-class appStore {
-	// ...
+// ============== Define Store1 and Store2 ==============
+/* Store1.js */
+import { observable, action } from "mobx"
+import RootStore from "RootStore.js"
+
+export default class Store1 {
+    constructor(rootStore) {
+        this.rootStore = rootStore
+    }
+    @observable field = ''
+    @action changeField = () => {
+      this.field = '123'
+    }
+    //blah blah blah...
 }
 
-export default remotedev(appStore);
-```
+/* Store2.js */
+import { observable, action } from "mobx"
+import RootStore from "RootStore.js"
 
-Or as ES decorator:
+export default class Store2 {
+    constructor(rootStore) {
+        this.rootStore = rootStore
+    }
+    @observable field = ''
+    @action changeSomethingInBothStores = () => {
+      this.field = '234'
+      this.rootStore.store1.changeField()
+    }
+    //blah blah blah...
+}
 
-```js
-import remotedev from 'mobx-remotedev';
+// ============== Combine Store1 and Store2 as single store ==============
+/* RootStore.js */
+import remotedev from '@hlhr202/mobx-remotedev'
+import Store1 from 'Store1.js'
+import Store2 from 'Store2.js'
 
-@remotedev(/*{ config }*/)
-export default class appStore {
-	// ...
+@remotedev(/* config */)
+export default class RootStore {
+    public store1 = new Store1(this)
+    public store2 = new Store2(this)
+}
+
+// ============== Use single store in React ==============
+/* index.js */
+import { Provider, observer, inject } from 'mobx-react'
+import RootStore.js from 'RootStore.js'
+
+@inject('store1')
+@inject('store2')
+@observer
+class Main extends React.Component {
+    render() {
+        return (
+            <div>
+                <p>field in store1: {this.props.store1.field}</p>
+                <p>field in store1: {this.props.store2.field}</p>
+                <button onClick={() => this.props.store2.changeSomethingInBothStores()}> changeSomething </button>
+            </div>
+        )
+    }
+}
+
+class Root extends React.Component {
+    render() {
+        return (
+            <Provider {...new RootStore()}>
+                <Main />
+            </Provider>
+        )
+    }
 }
 ```
 
-See [counter](https://github.com/zalmoxisus/mobx-remotedev/blob/master/examples/counter/stores/appState.js), [simple-todo](https://github.com/zalmoxisus/mobx-remotedev/blob/master/examples/simple-todo/index.js) and [todomvc](https://github.com/zalmoxisus/mobx-remotedev/tree/master/examples/todomvc/src/stores) examples.
 
 ## API
 #### `remotedev(store, [config])`
@@ -79,14 +134,14 @@ Also see [the extension API](https://github.com/zalmoxisus/redux-devtools-extens
 
 By default use
 ```js
-import remotedev from 'mobx-remotedev';
+import remotedev from '@hlhr202/mobx-remotedev';
 ```
 
 It will work only when `process.env.NODE_ENV === 'development'`, otherwise the code will be stripped.
 
 In case you want to use it in production or cannot set `process.env.NODE_ENV`, use
 ```js
-import remotedev from 'mobx-remotedev/lib/dev';
+import remotedev from '@hlhr202/mobx-remotedev/lib/dev';
 ```
 So, the code will not be stripped from production bundle and you can use the extension even in production. It wouldn't affect the performance for end-users who don't have the extension installed. 
 
@@ -116,6 +171,6 @@ Just set the `global` parameter to `true` like `remotedev(store, { global: true 
 
 [MIT](LICENSE)
 
-## Created By
-
-If you like this, follow [@mdiordiev](https://twitter.com/mdiordiev) on twitter.
+## Authors
+- Creted by [@mdiordiev](https://twitter.com/mdiordiev)
+- Modified by [@hlhr202](https://github.com/hlhr202)
